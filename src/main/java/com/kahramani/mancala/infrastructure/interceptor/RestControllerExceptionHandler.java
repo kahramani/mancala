@@ -2,6 +2,10 @@ package com.kahramani.mancala.infrastructure.interceptor;
 
 import com.kahramani.mancala.application.model.response.ErrorResponse;
 import com.kahramani.mancala.domain.exception.*;
+import com.kahramani.mancala.domain.exception.notFound.AvailableGameNotFoundException;
+import com.kahramani.mancala.domain.exception.notFound.BoardNotFoundException;
+import com.kahramani.mancala.domain.exception.notFound.GameSessionNotFoundException;
+import com.kahramani.mancala.domain.exception.notFound.PlayerNotFoundException;
 import com.kahramani.mancala.infrastructure.localization.MessageLocalizationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +39,20 @@ public class RestControllerExceptionHandler {
         logger.warn("A request validation exception occurred.", e); // client-based error so log level can be warn
         ErrorResponse response = createErrorResponse(e.getMessage(), e.getArguments());
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(response);
+    }
+
+    @ExceptionHandler(MancalaBusinessValidationException.class)
+    public ResponseEntity<ErrorResponse> handleMancalaBusinessValidationException(MancalaBusinessValidationException e) {
+        logger.warn("A mancala business validation exception occurred.", e); // client-based error so log level can be warn
+        ErrorResponse response = createErrorResponse(e.getMessage(), e.getArguments());
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(response);
+    }
+
+    @ExceptionHandler({AvailableGameNotFoundException.class, GameSessionNotFoundException.class, BoardNotFoundException.class, PlayerNotFoundException.class})
+    public ResponseEntity<ErrorResponse> handleNotFoundExceptions(Exception e) {
+        logger.warn("An available game not found exception occurred.", e); // client-based error so log level can be warn
+        ErrorResponse response = createErrorResponse("validation.business.game.not.found");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)

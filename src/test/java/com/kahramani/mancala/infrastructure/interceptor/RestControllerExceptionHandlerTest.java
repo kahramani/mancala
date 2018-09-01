@@ -1,7 +1,7 @@
 package com.kahramani.mancala.infrastructure.interceptor;
 
 import com.kahramani.mancala.application.model.response.ErrorResponse;
-import com.kahramani.mancala.domain.exception.AvailableGameNotFoundException;
+import com.kahramani.mancala.domain.exception.notFound.AvailableGameNotFoundException;
 import com.kahramani.mancala.domain.exception.MancalaBusinessValidationException;
 import com.kahramani.mancala.domain.exception.RequestValidationException;
 import com.kahramani.mancala.infrastructure.localization.MessageLocalizationService;
@@ -36,6 +36,36 @@ public class RestControllerExceptionHandlerTest {
 
         // assertions
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        ErrorResponse errorResponse = response.getBody();
+        assertThat(errorResponse).isNotNull();
+        assertThat(errorResponse.getErrorCode()).isEqualTo("999");
+        assertThat(errorResponse.getErrorMessage()).isEqualTo("test is mandatory");
+    }
+
+    @Test
+    public void should_return_http_422_with_a_body_when_mancalaBusinessValidationException_occurs() {
+        MancalaBusinessValidationException exception = new MancalaBusinessValidationException("message.key", "test");
+        Mockito.when(messageLocalizationService.getLocaleMessage("message.key", "test")).thenReturn("999;test is mandatory");
+
+        ResponseEntity<ErrorResponse> response = restControllerExceptionHandler.handleMancalaBusinessValidationException(exception);
+
+        // assertions
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        ErrorResponse errorResponse = response.getBody();
+        assertThat(errorResponse).isNotNull();
+        assertThat(errorResponse.getErrorCode()).isEqualTo("999");
+        assertThat(errorResponse.getErrorMessage()).isEqualTo("test is mandatory");
+    }
+
+    @Test
+    public void should_return_http_404_with_a_body_when_notFoundException_occurs() {
+        AvailableGameNotFoundException exception = new AvailableGameNotFoundException();
+        Mockito.when(messageLocalizationService.getLocaleMessage("validation.business.game.not.found")).thenReturn("999;test is mandatory");
+
+        ResponseEntity<ErrorResponse> response = restControllerExceptionHandler.handleNotFoundExceptions(exception);
+
+        // assertions
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         ErrorResponse errorResponse = response.getBody();
         assertThat(errorResponse).isNotNull();
         assertThat(errorResponse.getErrorCode()).isEqualTo("999");
